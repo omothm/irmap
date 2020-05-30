@@ -135,8 +135,12 @@ void setup() {
   // Start the Serial
   Serial.begin(SERIAL_BAUD);
 
-  // Servo
-  uint8_t p = setupServo();
+  // Servo:
+  // Attach the servo motor to the pin. The method also takes care of setting
+  // the pin mode. An overload of the attach() function also accepts values for
+  // min and max pulse. These would be good values to provide but they are not
+  // available for the servo we're using in this project.
+  uint8_t p = servo.attach(PIN_SERVO);
   Serial.print("Servo ready on pin with ID ");
   Serial.println(p);
 
@@ -178,16 +182,6 @@ void loop() {
    @return true if the setup was successful, false otherwise and the error is
            printed to the Serial.
 */
-void setupIrSensor() {
-  // TODO
-}
-
-/**
- * Sets up the Wi-Fi access point and starts it.
- *
- * @return true if the setup was successful, false otherwise and the error is
- *         printed to the Serial.
- */
 bool setupWiFi() {
   // A generic boolean to hold the result of operations
   bool ret;
@@ -345,7 +339,9 @@ int getDistance(const int angle) {
   
   // First, reorient the servo to the desired angle
   servoGoTo(angle);
-  return irMeasureDistance();
+
+  // Then read the sensor distance
+  return irSensor.read();
 }
 
 /**
