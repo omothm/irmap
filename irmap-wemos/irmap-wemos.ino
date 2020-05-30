@@ -72,7 +72,7 @@
 // Board (Wemos D1 mini)
 #define SERIAL_BAUD 115200 // arbitrary
 // Servo pin is arbitrary but must support PWM. All IO pins of Wemos D1 mini
-// support pins except D0
+// support PWM except D0
 #define PIN_SERVO D1
 // Sensor pin must be analog
 #define PIN_SENSOR A0
@@ -131,11 +131,9 @@ void setup() {
   Serial.print("Servo ready on pin with ID ");
   Serial.println(p);
 
-  // IR sensor
-  setupIrSensor();
-
-  // Wi-Fi: We need to set up the on-board Wi-Fi chip as an access point to
-  // allow other devices to connect to it.
+  // Wi-Fi:
+  // We need to set up the on-board Wi-Fi chip as an access point to allow other
+  // devices to connect to it.
   bool b = setupWiFi();
   if (b) {
     Serial.print("Wi-Fi access point ready. IP: ");
@@ -146,8 +144,9 @@ void setup() {
     return;
   }
 
-  // Server: We then need to start an HTTP server that accepts requests from
-  // local clients and sends back a response.
+  // Server:
+  // We then need to start an HTTP server that accepts requests from local
+  // clients and sends back a response.
   setupServer();
   Serial.println("HTTP server ready");
 }
@@ -160,26 +159,16 @@ void loop() {
     return;
   }
 
-  // The server will process incoming client requests in a loop.
+  // Handle server requests
   server.handleClient();
 }
 
 /**
- * Sets up the servo motor.
- * 
- * @return the ID of the attached pin.
- */
-uint8_t setupServo() {
-  // Attach the servo motor to the pin. The method also takes care of setting
-  // the pin mode. An overload of the attach() function also accepts values for
-  // min and max pulse. These would be good values to provide but they are not
-  // available for the servo we're using in this project.
-  return servo.attach(PIN_SERVO);
-}
+   Sets up the Wi-Fi access point and starts it.
 
-/**
- * Sets up the infrared sensor.
- */
+   @return true if the setup was successful, false otherwise and the error is
+           printed to the Serial.
+*/
 void setupIrSensor() {
   // TODO
 }
@@ -217,7 +206,9 @@ bool setupWiFi() {
     return false;
   }
 
-  // Disconnent from previously connected networks if any
+  // Disconnent from previously connected networks if any. We need this because
+  // the WiFi API saves previous network details and attempts connecting to them
+  // once the device is powered up.
   ret = WiFi.disconnect();
   if (!ret) {
     Serial.println("Error: failed to disconnect from previous network");
@@ -253,8 +244,8 @@ bool setupWiFi() {
 }
 
 /**
- * Starts the HTTP server.
- */
+   Starts the HTTP server and assigns request handlers.
+*/
 void setupServer() {
   // Register a function to handle requests with a URI of "/" (root), i.e.
   // requests at "http://192.168.30.7:80/" with no path after the final slash.
@@ -265,8 +256,8 @@ void setupServer() {
 }
 
 /**
- * Prepares some strings describing error responses sent to the client.
- */
+   Prepares some strings describing error responses sent to the client.
+*/
 void defineErrorResponses() {
   errorAngleLimits = "The angle must be between ";
   errorAngleLimits += SERVO_MIN_ANGLE;
@@ -281,15 +272,15 @@ void defineErrorResponses() {
 }
 
 /**
- * Handles requests at the root URI, i.e. at "http://192.168.30.7:80/" with
- * no path after the final slash.
- */
+   Handles requests at the root URI, i.e. at "http://192.168.30.7:80/" with
+   no path after the final slash.
+*/
 void handleRoot() {
   Serial.print("Request received: ");
 
   // The request must contain an argument "angle" that requests a distance
   // measurement at that angle. If the request does not contain that argument,
-  // send a "bad request" response.
+  // send a "no angle" error.
   if (!server.hasArg(ARG_ANGLE)) {
     Serial.println(" no angle");
     badRequest(errorNoAngle);
@@ -307,7 +298,7 @@ void handleRoot() {
     return;
   }
 
-  // If the angle is out of bounds, send a bad request response
+  // If the angle is out of bounds, send a "angle limits" error
   if (angle < SERVO_MIN_ANGLE || angle > SERVO_MAX_ANGLE) {
     Serial.print(" angle out of bounds (");
     Serial.print(angle);
@@ -334,11 +325,25 @@ void handleRoot() {
   server.send(HTTP_SUCCESS, RESPONSE_TYPE, response);
 }
 
+/**
+   Gets the distance in centimeters measured at the given angle.
+
+   @param angle the angle at which the measurement is done.
+
+   @return the measured distance in centimeters.
+ */
 int getDistance(const int angle) {
+  
+  // First, reorient the servo to the desired angle
   servoGoTo(angle);
   return irMeasureDistance();
 }
 
+/**
+   Orients the servo motor to the given angle.
+
+   @param angle the angle to orient the servo motor to.
+ */
 void servoGoTo(const int angle) {
   // At this point, the angle should have been checked for validity. So we're
   // using assert here (which fails the program ungracefully)
@@ -351,25 +356,28 @@ void servoGoTo(const int angle) {
   delay(WIDEST_ROTATION_DELAY);
 }
 
-int irMeasureDistance() {}
+/**
+   Sends a bad request response with the given error.
 
+   @param error the error to attach to the bad request response.
+ */
 void badRequest(const String error) {
   server.send(HTTP_BAD_REQUEST, RESPONSE_TYPE, "{'error': '" + error + "'}");
 }
 
 /**
- * Converts the string in `line` to integer and puts it in `val`. Returns true
- * if conversion did not encounter an unexpected character in the string.
- * 
- * This function was written because the standard C++ library does not offer a
- * simple way to convert string to int.
- * 
- * @param line the string to convert.
- * @param val a pointer to an int variable to put the result in.
- * 
- * @return true if the string does not contain any trailing nonnumeric
- *         characters, false otherwise.
- */
+   Converts the string in `line` to integer and puts it in `val`. Returns true
+   if conversion did not encounter an unexpected character in the string.
+
+   This function was written because the standard C++ library does not offer a
+   simple way to convert string to int.
+
+   @param line the string to convert.
+   @param val a pointer to an int variable to put the result in.
+
+   @return true if the string does not contain any trailing nonnumeric
+           characters, false otherwise.
+*/
 bool intVal(String line, int *val) {
   // A pointer to the first encountered nonnumeric character in the string
   char *p;
