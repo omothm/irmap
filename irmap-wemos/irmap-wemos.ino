@@ -186,9 +186,6 @@ bool setupWiFi() {
   // A generic boolean to hold the result of operations
   bool ret;
 
-  // Prepare some strings describing error responses sent to the client.
-  defineErrorResponses();
-
   // The ESP8266 Wi-Fi library has default IP address used for the access point,
   // but we want to configure it to use our own values for consistency across
   // the project.
@@ -250,6 +247,10 @@ bool setupWiFi() {
    Starts the HTTP server and assigns request handlers.
 */
 void setupServer() {
+
+  // Prepare some strings describing error responses sent to the client.
+  defineErrorResponses();
+
   // Register a function to handle requests with a URI of "/" (root), i.e.
   // requests at "http://192.168.30.7:80/" with no path after the final slash.
   server.on("/", handleRoot);
