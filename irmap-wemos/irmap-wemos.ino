@@ -62,7 +62,7 @@
 
 */
 
-#include <assert.h>
+#include "IRSensor.h"
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <Servo.h>
@@ -76,17 +76,33 @@
 // support PWM except D0
 #define PIN_SERVO D1
 // Sensor pin must be analog
-#define PIN_SENSOR A0
+#define PIN_IRSENSOR A0
+
+// The following two values are needed for configuring IR sensor readings.
+
+// The number of bits in the analog read of the board.
+#define ANALOG_BITS 10
+// Although the documentation says it's 3.1, the experimental cap is found to be
+// 3.1 volts.
+#define ANALOG_MAX_VOLTAGE 3.1
 
 // Servo motor (Tower Pro SG-5010)
 
-#define SERVO_MIN_ANGLE 0 
+#define SERVO_MIN_ANGLE 0
 #define SERVO_MAX_ANGLE 180
 // The servo requires around 580 milliseconds to go all the way from min to max
 // angle
 #define WIDEST_ROTATION_DELAY 580
 
 // IR sensor (Sharp GP2Y0A21YK)
+// The powerfit values are used to calculate the distance in centimeters
+// according the power function:
+//     y = a * x ^ b
+// where x is the voltage of the sensor output. These two values were calculated
+// using the sensor datasheet and some sample readings.
+
+#define POWERFIT_A 27.42658507372286
+#define POWERFIT_B -1.165498349785544
 #define IR_MIN_DISTANCE 10
 #define IR_MAX_DISTANCE 80
 
@@ -123,6 +139,8 @@ String errorNonIntegerAngle;
 // Initialize global objects
 
 Servo servo;
+IRSensor irSensor(PIN_IRSENSOR, POWERFIT_A, POWERFIT_B, ANALOG_BITS,
+                  ANALOG_MAX_VOLTAGE);
 ESP8266WebServer server(PORT);
 
 // Global variables

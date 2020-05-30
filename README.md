@@ -2,6 +2,12 @@
 
 Infrared Map Constructor Robot
 
+## Custom Libraries
+
+The project includes the class `IRSensor` in the form of header and cpp files placed in the root directory of the main ino file. The reason they are placed there (i.e. not in their own directory somewhere else for a better organization) is to let the compiler find the definition directly (and not have to tinker with the include path).
+
+If you want to use the `IRSensor` class in your own project, you can place them in the same directory as your ino file (and, of course, import them at the top of the sketch using `#include "IRSensor.h"`). For Arduino IDE users, you can also put the two files in a folder with the same name, zip it, then include it from the **Sketch > Include Library > Add .ZIP Library...** menu.
+
 ## VS Code Configuration
 
 For VS Code users, we recommend some extensions and settings for a comfortable development experience. Settings refer to files in the `.vscode` folder, and are to be _added_ to existing settings if any, not _replace_ them.
