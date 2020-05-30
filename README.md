@@ -37,12 +37,10 @@ For VS Code users, we recommend some extensions and settings for a comfortable d
         "configurations": [
             {
                 "includePath": [
-                    "C:\\Users\\{USER}\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
-                    "C:\\Users\\{USER}\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.0\\**",
-                    "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include\\**"
+                    "C:\\Users\\{USER}\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.0\\**"
                 ],
                 "forcedInclude": [
-                    "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h",
+                    "C:\\Users\\{USER}\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.0\\cores\\esp8266\\Arduino.h",
                     "C:\\Users\\{USER}\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.0\\variants\\d1_mini\\pins_arduino.h"
                 ]
             }
