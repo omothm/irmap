@@ -59,13 +59,14 @@
 
    where ERROR_MSG explains the reason for the error. (Please refer to the
    definitions below for the actual attribute names and limits).
-   
+
 */
 
 #include <assert.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <Servo.h>
+#include <assert.h>
 
 // Hardware definitions:
 
@@ -78,6 +79,7 @@
 #define PIN_SENSOR A0
 
 // Servo motor (Tower Pro SG-5010)
+
 #define SERVO_MIN_ANGLE 0 
 #define SERVO_MAX_ANGLE 180
 // The servo requires around 580 milliseconds to go all the way from min to max
@@ -89,19 +91,23 @@
 #define IR_MAX_DISTANCE 80
 
 // WiFi definitions
+
 #define SSID "ETE3007-IRMAP"  // max 31 chars
 #define PASSPHRASE "wemosmap" // max 63 chars (and for WPA2 min 8 chars)
 
 // Server definitions (arbitrary values except for the default port)
+
 #define IP "192.168.30.7"
 #define GATEWAY "192.168.30.1"
 #define SUBNET "255.255.255.0"
 #define PORT 80 // default http port
 
 // Request definitions
+
 #define ARG_ANGLE "angle"
 
 // Response definitions
+
 #define HTTP_SUCCESS 200
 #define HTTP_BAD_REQUEST 400
 #define RESPONSE_TYPE "application/json"
@@ -109,15 +115,18 @@
 #define REPSONSE_ATTR_DISTANCE "distance"
 
 // Error response definitions
+
 String errorAngleLimits;
 String errorNoAngle;
 String errorNonIntegerAngle;
 
 // Initialize global objects
+
 Servo servo;
 ESP8266WebServer server(PORT);
 
 // Global variables
+
 bool wiFiError = false;
 
 void setup() {
@@ -292,7 +301,7 @@ void handleRoot() {
   int angle;
   bool b = intVal(server.arg(ARG_ANGLE), &angle);
 
-  // If a conversion was erroneous, send a bad request response
+  // If conversion encountered an error, send a "non-integer" error
   if (!b) {
     badRequest(errorNonIntegerAngle);
     return;
@@ -348,7 +357,7 @@ void servoGoTo(const int angle) {
   // At this point, the angle should have been checked for validity. So we're
   // using assert here (which fails the program ungracefully)
   assert(angle >= SERVO_MIN_ANGLE && angle <= SERVO_MAX_ANGLE);
-  
+
   // Rotate the servo to the desired angle
   servo.write(angle);
 
