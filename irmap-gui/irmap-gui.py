@@ -56,8 +56,7 @@ def main():
 
 class UI:
     def __init__(self, toplevel):
-        self.x_vals = [None for _ in range(360)]
-        self.y_vals = [None for _ in range(360)]
+        self.points = {}
         self.line = None
         self.figure = None
         self.axis = None
@@ -106,7 +105,9 @@ class UI:
             ylim=(-1.1, 1.1),
             aspect=1
         )
-        self.line, = self.axis.plot([], [], lw=1)
+        self.axis.grid()
+        self.axis.scatter([0], [0], c="orange")
+        self.line, = self.axis.plot([], [], lw=2)
         canvas = FigureCanvasTkAgg(self.figure, canvas_frame)
         canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
@@ -116,44 +117,49 @@ class UI:
             angle = response[RESPONSE_ANGLE]
             index = angle + (179 if side == SIDE_RIGHT else 0)
             distance = response[RESPONSE_DISTANCE]
-            self.x_vals[index] = np.sin(
-                angle * np.pi / 180) * distance * (1 if side == SIDE_RIGHT else -1)
-            self.y_vals[index] = np.cos(
-                angle * np.pi / 180) * distance * (-1 if side == SIDE_RIGHT else 1)
-            self.line.set_data(self.x_vals, self.y_vals)
-
-            self.update_limits()
+            x = np.sin(angle * np.pi / 180) * distance * \
+                (1 if side == SIDE_RIGHT else -1)
+            y = np.cos(angle * np.pi / 180) * distance * \
+                (-1 if side == SIDE_RIGHT else 1)
+            self.points[index] = (x, y)
+            self.update_graph()
             self.figure.canvas.draw()
 
     def clear(self):
-        self.x_vals = [None for _ in range(360)]
-        self.y_vals = [None for _ in range(360)]
-        self.line.set_data(self.x_vals, self.y_vals)
-
-        self.update_limits()
+        self.points = {}
+        self.update_graph()
         self.figure.canvas.draw()
 
-    def update_limits(self):
-        xlim = reduce(lambda x1, x2: x1 if not x2 or x1 >
-                      abs(x2) else abs(x2), self.x_vals, 1) + 0.1
-        ylim = reduce(lambda x1, x2: x1 if not x2 or x1 >
-                      abs(x2) else abs(x2), self.y_vals, 1) + 0.1
+    def update_graph(self):
+        x_vals = []
+        y_vals = []
+        xlim = 1
+        ylim = 1
+        for _, (x, y) in sorted(self.points.items()):
+            x_vals.append(x)
+            y_vals.append(y)
+            if abs(x) > xlim:
+                xlim = abs(x)
+            if abs(y) > ylim:
+                ylim = abs(y)
+        self.line.set_data(x_vals, y_vals)
+
+        # Update limits
+        xlim, ylim = xlim + 0.1, ylim + 0.1
         self.axis.set_xlim(-xlim, xlim)
         self.axis.set_ylim(-ylim, ylim)
 
 
 def scan():
-    for angle in range(MIN_ANGLE, MAX_ANGLE + 1):
+    for angle in range(MIN_ANGLE, MAX_ANGLE + 1, 20):
         try:
-            # res = requests.get(url=f"http://{IP}:{PORT}/?{ARG_ANGLE}={angle}")
-            pass
+            res = requests.get(url=f"http://{IP}:{PORT}/?{ARG_ANGLE}={angle}")
         except:
             error()
             return
-        # yield res.text
-        yield f"{{\"angle\":{angle},\"distance\":2}}"
+        yield res.text
     # Reset the angle
-    # requests.get(url=f"http://{IP}:{PORT}/?{ARG_ANGLE}={MIN_ANGLE}")
+    requests.get(url=f"http://{IP}:{PORT}/?{ARG_ANGLE}={MIN_ANGLE}")
 
 
 def error():
