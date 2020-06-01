@@ -339,9 +339,9 @@ void handleRoot() {
   Serial.println(distance);
 
   // Send the JSON response
-  String response = "{'angle': ";
+  String response = "{\"angle\": ";
   response += angle;
-  response += ", 'distance': ";
+  response += ", \"distance\": ";
   response += distance;
   response += "}";
   server.send(HTTP_SUCCESS, RESPONSE_TYPE, response);
@@ -386,7 +386,7 @@ void servoGoTo(const int angle) {
    @param error the error to attach to the bad request response.
  */
 void badRequest(const String error) {
-  server.send(HTTP_BAD_REQUEST, RESPONSE_TYPE, "{'error': '" + error + "'}");
+  server.send(HTTP_BAD_REQUEST, RESPONSE_TYPE, "{\"error\": \"" + error + "\"}");
 }
 
 /**
